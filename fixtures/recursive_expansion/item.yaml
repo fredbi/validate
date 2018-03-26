@@ -12,4 +12,4 @@ item:
       minLength: 2
       maxLength: 80
     subitem:
-      $ref: "item.yaml#/item" 
+      $ref: "#/item" 
