@@ -17,6 +17,7 @@ package validate_test
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -210,4 +211,84 @@ func Test_Issue102_Circular(t *testing.T) {
 			require.Emptyf(t, res.Errors, "unexpected validation erorrs: %v", res.Errors)
 		})
 	}
+}
+
+const validPath = "fixtures/bugs/135/fixture-135.yaml"
+
+func TestValidOpenAPI(t *testing.T) {
+	valid, _ := validateOpenAPI(t, validPath)
+	require.True(t, valid)
+}
+
+func TestMungedValidOpenAPI(t *testing.T) {
+	munged, deferFunc, err := processOpenAPI(t, validPath)
+	defer deferFunc()
+
+	require.NoError(t, err, "error processing openapi")
+
+	valid, _ := validateOpenAPI(t, munged)
+	require.True(t, valid)
+}
+
+func validateOpenAPI(t testing.TB, path string) (bool, *validate.Result) {
+
+	doc, err := loads.Spec(path)
+	require.NoError(t, err, "error loading: %s: %v", path, err)
+
+	validator := validate.NewSpecValidator(doc.Schema(), strfmt.Default)
+	validator.SetContinueOnErrors(true)  // Set option for this validator
+	result, _ := validator.Validate(doc) // Validates spec with default Swagger 2.0 format definitions
+
+	if result.IsValid() {
+		fmt.Printf("%s is valid\n", path)
+		return true, result
+	}
+
+	if result.HasErrors() {
+		fmt.Printf("%s has some validation errors:\n", path)
+		for _, e := range result.Errors {
+			fmt.Printf("\t%s\n", e)
+		}
+		return false, result
+	}
+
+	if result.HasWarnings() {
+		fmt.Printf("%shas some validation warnings:\n", path)
+		for _, w := range result.Warnings {
+			fmt.Printf("\t%s\n", w)
+		}
+		return true, result
+	}
+
+	return false, result
+}
+
+func processOpenAPI(t testing.TB, path string) (string, func(), error) {
+
+	var spec []byte
+	var err error
+
+	if _, err = os.Stat(path); err != nil {
+		return "", func() {}, err
+	}
+
+	if spec, err = ioutil.ReadFile(path); err != nil {
+		return "", func() {}, err
+	}
+
+	munged := string(spec)
+
+	// template variable replacment goes here
+
+	mungedFile, err := ioutil.TempFile("", "openapi.*.yaml")
+	if err != nil {
+		return "", func() {}, err
+	}
+	t.Logf("writing as new file: %q", mungedFile.Name())
+
+	mungedFile.WriteString(munged)
+
+	require.NoError(t, mungedFile.Close())
+
+	return mungedFile.Name(), func() { os.Remove(mungedFile.Name()) }, nil
 }
