@@ -13,7 +13,6 @@ import (
 
 	"github.com/go-openapi/analysis"
 	"github.com/go-openapi/loads"
-	"github.com/go-openapi/loads/fmts"
 	"github.com/go-openapi/spec"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/testify/v2/assert"
@@ -38,7 +37,7 @@ var (
 )
 
 func init() {
-	loads.AddLoader(fmts.YAMLMatcher, fmts.YAMLDoc)
+	//loads.AddLoader(fmts.YAMLMatcher, fmts.YAMLDoc)
 	flag.BoolVar(&enableLongTests, "enable-long", false, "enable long runnning tests")
 	flag.BoolVar(&enableGoSwaggerTests, "enable-go-swagger", false, "enable go-swagger non-regression test")
 }
