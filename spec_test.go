@@ -941,3 +941,10 @@ func Test_2866(t *testing.T) {
 
 	require.NoError(t, Spec(doc, strfmt.Default))
 }
+
+// repro testcase for issue go-openapi/spec#145 (windows)
+func Test_IssueSpec145(t *testing.T) {
+	fp := filepath.Join("fixtures", "bugs", "145", "Program Files (x86)", "AppName", "todos.json")
+	res, _ := loadAndValidate(t, fp)
+	assert.Truef(t, res.IsValid(), "expected spec to be valid")
+}
