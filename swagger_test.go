@@ -31,10 +31,12 @@ func skipNotifyGoSwagger(t *testing.T) {
 //
 // Proposal for enhancement: move this list to a YAML fixture config file.
 func Test_GoSwaggerTestCases(t *testing.T) {
-	if !enableGoSwaggerTests {
-		skipNotifyGoSwagger(t)
-		t.SkipNow()
-	}
+	/*
+		if !enableGoSwaggerTests {
+			skipNotifyGoSwagger(t)
+			t.SkipNow()
+		}
+	*/
 	// A list of test cases which fail on "swagger validate" at spec load time
 	expectedLoadFailures := map[string]bool{
 		"testdata/go-swagger/bugs/342/fixture-342.yaml":   false,
